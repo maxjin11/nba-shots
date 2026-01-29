@@ -21,7 +21,7 @@ async def test():
 
 @app.get("/players")
 async def get_players():
-    print("Sample:", all_players[0])
+    print("Retrieving all players.")
     return all_players
 
 @app.get("/shots/{id}")
@@ -40,8 +40,4 @@ async def get_shots(id: int):
     df = raw_shotlog.get_data_frames()[0]
     shotlog = df.to_dict(orient="records")
 
-    shot_types = []
-    for shots in shotlog:
-        shot_category = "temp"
-
-
+    return shotlog

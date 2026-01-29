@@ -138,7 +138,7 @@ export default function SearchBar({
               }}
             >
               <Link
-                href = {`/player/${player.id}`}
+                href = {`/shots/${player.id}`}
                 onClick = {() => handlePlayerSelect(player)}
                 style = {{
                   display: "block",
