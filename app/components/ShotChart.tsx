@@ -19,9 +19,24 @@ export default function ShotChart({ shots, playerName = "Player" }: ShotChartPro
   const mountRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({ made: 0, missed: 0, percentage: 0 });
 
-  useEffect(() => {
+  useEffect(() => {    
     if (!mountRef.current || shots.length === 0) return;
 
+    const container = mountRef.current;
+
+    while (container.firstChild) {
+      const child = container.firstChild;
+
+      if (child instanceof HTMLCanvasElement) {
+        const gl = child.getContext('webgl') || child.getContext('webgl2');
+        if (gl) {
+          const loseContext = gl.getExtension('WEBGL_lose_context');
+          if (loseContext) loseContext.loseContext();
+        }
+      }
+      container.removeChild(child);
+    }
+    
     // Calculate stats
     const made = shots.filter(s => s.SHOT_MADE_FLAG === 1).length;
     const missed = shots.length - made;
@@ -39,7 +54,7 @@ export default function ShotChart({ shots, playerName = "Player" }: ShotChartPro
       0.1,
       2000
     );
-    camera.zoom = 5;
+    camera.zoom = 3;
     camera.position.set(0, 500, 400);
     camera.lookAt(0, 0, 50);
 
@@ -232,7 +247,13 @@ export default function ShotChart({ shots, playerName = "Player" }: ShotChartPro
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      cameraHeight = Math.max(300, Math.min(1000, cameraHeight + e.deltaY * 0.3));
+
+      if (e.ctrlKey) {
+        cameraDistance = Math.max(300, Math.min(1000, cameraDistance + e.deltaY * 1.5 + e.deltaX * 1.5 + e.deltaZ * 1.5));
+      } else {
+        cameraDistance = Math.max(300, Math.min(1000, cameraDistance + e.deltaY * 0.3 + e.deltaX * 0.3 + e.deltaZ * 0.3));
+      }
+      
       camera.position.x = Math.sin(cameraAngle) * cameraDistance;
       camera.position.z = Math.cos(cameraAngle) * cameraDistance + 50;
       camera.lookAt(0, 0, 50);
@@ -266,6 +287,7 @@ export default function ShotChart({ shots, playerName = "Player" }: ShotChartPro
       renderer.domElement.removeEventListener('mousemove', onMouseMove);
       renderer.domElement.removeEventListener('mouseup', onMouseUp);
       renderer.domElement.removeEventListener('wheel', onWheel);
+
       if (mountRef.current) {
         mountRef.current.removeChild(renderer.domElement);
       }
@@ -330,10 +352,10 @@ export default function ShotChart({ shots, playerName = "Player" }: ShotChartPro
         ref={mountRef} 
         style={{ 
           width: '100%', 
-          height: '600px',
+          height: '900px',
           background: '#1a1a2e',
           borderRadius: '0 0 8px 8px',
-          cursor: 'grab'
+          cursor: 'grab',
         }} 
       />
       <div style={{ 

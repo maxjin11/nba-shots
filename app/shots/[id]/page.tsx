@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import ShotChart from '../../components/ShotChart';
 import SearchBar from "../../components/SearchBar";
+import PlayerStatsSidebar from '@/app/components/PlayerStatsSidebar';
 import type { Player } from "../../types/player";
 
 type Shot = {
@@ -14,6 +15,11 @@ type Shot = {
   SHOT_TYPE: string;
 };
 
+type Stats = {
+  GP: number;
+  PTS: number;
+};
+
 export default function ShotsPage() {
   const params = useParams();
   const playerId = params.id;
@@ -22,13 +28,15 @@ export default function ShotsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+
   
 
   useEffect(() => {
     const fetchShots = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8000/shots/${playerId}`);
+        const res = await fetch(`http://127.0.0.1:8000/shots/${playerId}`);
         
         if (!res.ok) {
           throw new Error('Failed to fetch shots');
@@ -38,7 +46,7 @@ export default function ShotsPage() {
         setShots(data);
         
         // Optionally fetch player name
-        const playersRes = await fetch('http://localhost:8000/players');
+        const playersRes = await fetch('http://127.0.0.1:8000/players');
         const players = await playersRes.json();
         const player = players.find((p: any) => p.id === parseInt(playerId as string));
         if (player) {
@@ -72,6 +80,23 @@ export default function ShotsPage() {
     };
 
     fetchPlayers();
+  }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/players/${playerId}/current-season`);
+        const data = await res.json();
+
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
   }, []);
 
   const handleSelect = (player: Player) => {
@@ -118,8 +143,13 @@ export default function ShotsPage() {
         <SearchBar players={players} onSelect={handleSelect} />
       </div>
 
-      <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
-        <ShotChart shots={shots} playerName={playerName} />
+      <div style={{ display: 'flex', maxWidth: '1600px', margin: '0 auto', padding: '40px', gap: '24px' }}>
+        <div style={{ flex: 1 }}>
+          <ShotChart shots={shots} playerName={playerName} />
+        </div>
+
+        
+          <PlayerStatsSidebar playerName={playerName} shots={shots} seasonStats={stats || undefined}/>
       </div>
     </div>
   );

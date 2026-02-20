@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
-from nba_api.stats.endpoints import playercareerstats as pcs, ShotChartDetail
+from nba_api.stats.endpoints import playercareerstats as pcs, ShotChartDetail, PlayerProfileV2
 from nba_api.stats.static import players, teams
 
 all_players = players.get_active_players()
@@ -37,7 +37,21 @@ async def get_shots(id: int):
     )
 
     print(f"Returning shot records for {name} over the 2025-26 season.")
-    df = raw_shotlog.get_data_frames()[0]
-    shotlog = df.to_dict(orient="records")
+    shotlog_df = raw_shotlog.get_data_frames()[0]
+    shotlog = shotlog_df.to_dict(orient="records")
 
     return shotlog
+
+@app.get("/players/{id}/current-season")
+async def get_player_stats(id: int):
+    name = players.find_player_by_id(id)
+    raw_stats = pcs.PlayerCareerStats(
+        per_mode36 = 'PerGame',
+        player_id = id,
+    )
+
+    print(f"Returning stats for {name} over the 2025-26 season.")
+    stats_df = raw_stats.get_data_frames()[0]
+    stats = stats_df.to_dict(orient="records")
+    
+    return stats[-1]
