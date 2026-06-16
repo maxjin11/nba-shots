@@ -85,19 +85,29 @@ export default function ShotsPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        setLoading(true);
         const res = await fetch(`http://127.0.0.1:8000/players/${playerId}/current-season`);
-        const data = await res.json();
 
+        if (!res.ok) {
+          throw new Error('Failed to fetch stats')
+        }
+
+        const data = await res.json();
+        
         setStats(data);
       } catch (error) {
         console.error("Failed to fetch stats:", error);
+        setError("Failed to fetch stats");
+        setStats(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
-  }, []);
+    if (playerId) {
+      fetchStats();
+    }
+  }, [playerId]);
 
   const handleSelect = (player: Player) => {
     console.log("Selected:", player);

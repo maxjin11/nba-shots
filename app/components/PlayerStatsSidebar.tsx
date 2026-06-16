@@ -75,6 +75,14 @@ export default function PlayerStatsSidebar({
       shot.ACTION_TYPE = shot.ACTION_TYPE?.replace(" shot", "");
     }
 
+    if (shot.ACTION_TYPE?.includes("Finger Roll")) {
+      shot.ACTION_TYPE = shot.ACTION_TYPE?.replace(" Finger Roll", "");
+    }
+
+    if (shot.ACTION_TYPE?.includes("Running")) {
+      shot.ACTION_TYPE = shot.ACTION_TYPE?.replace("Running", "Driving");
+    }
+
     if (shot.SHOT_ZONE_BASIC == "Above the Break 3") {
       if (shot.SHOT_ZONE_AREA == "Center(C)") {
         shotZone = "Top of the Key";
@@ -110,17 +118,7 @@ export default function PlayerStatsSidebar({
 
 
     if (shot.SHOT_ZONE_BASIC == "Restricted Area") {
-      if (shot.ACTION_TYPE == "Running Dunk" || shot.ACTION_TYPE == "Driving Dunk" || shot.ACTION_TYPE == "Cutting Dunk") {
-        shotType = "Running Dunk";
-      } else if (shot.ACTION_TYPE == "Running Alley Oop Dunk" || shot.ACTION_TYPE == "Alley Oop Dunk") {
-        shotType = "Alley Oop Finish";
-      } else if (shot.ACTION_TYPE == "Layup" || shot.ACTION_TYPE == "Running Layup" || shot.ACTION_TYPE == "Driving Layup" || shot.ACTION_TYPE == "Running Finger Roll Layup" || shot.ACTION_TYPE == "Driving Finger Roll Layup") {
-        shotType = "Driving Layup";
-      } else if (shot.ACTION_TYPE == "Cutting Layup" || shot.ACTION_TYPE == "Cutting Finger Roll Layup") {
-        shotType = "Cutting Layup";
-      } else {
-        shotType = shot.ACTION_TYPE || "Unknown"; 
-      }
+      shotType = shot.ACTION_TYPE || "Unknown"; 
     } else if (shot.SHOT_TYPE == "3PT Field Goal") {
       shotType = shotZone + " Three-Point " + shot.ACTION_TYPE;
     } else {
