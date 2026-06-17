@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Fraunces, JetBrains_Mono } from "next/font/google";
+import { DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import SearchBar from "./components/SearchBar";
 import type { Player } from "./types/player";
 
-const fraunces = Fraunces({
+const display = DM_Serif_Display({
   subsets: ["latin"],
-  weight: ["400", "900"],
+  weight: ["400"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -107,7 +107,7 @@ export default function Home() {
           </span>
 
           <h1
-            className={`${fraunces.className} rise leading-[0.84] tracking-[-0.045em] text-[clamp(56px,10vw,128px)] font-[900]`}
+            className={`${display.className} rise leading-[0.84] tracking-[-0.045em] text-[clamp(56px,10vw,128px)]`}
             style={{ animationDelay: "0.25s" }}
           >
             <span className="block">Shooters</span>

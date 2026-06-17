@@ -1,5 +1,18 @@
-import React from 'react';
-import { computeMikkTSpaceTangents } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import React from "react";
+import { DM_Serif_Display, JetBrains_Mono } from "next/font/google";
+
+const display = DM_Serif_Display({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 type Shot = {
   LOC_X: number;
@@ -22,50 +35,143 @@ type PlayerStatsSidebarProps = {
   playerName: string;
   shots: Shot[];
   seasonStats?: Stats;
+  loading?: boolean;
 };
 
-export default function PlayerStatsSidebar({ 
-  playerName, 
+function Skel({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block animate-pulse rounded bg-white/[0.07] ${className ?? ""}`}
+    />
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <aside className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-7 backdrop-blur-md">
+      <div className="pointer-events-none absolute -right-24 -top-32 h-64 w-64 rounded-full bg-[#ff5e2b]/[0.08] blur-[80px]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ededed]/15 to-transparent" />
+
+      <header className="relative">
+        <div
+          className={`${mono.className} text-[10px] uppercase tracking-[0.42em] text-[#ff5e2b]`}
+        >
+          by the numbers
+        </div>
+        <div
+          className={`${mono.className} mt-2 text-[10px] uppercase tracking-[0.32em] text-[#ededed]/35`}
+        >
+          fetching report…
+        </div>
+      </header>
+
+      <div className="relative mt-7 flex items-end gap-3 border-b border-white/[0.07] pb-7">
+        <Skel className="h-[68px] w-[140px]" />
+        <div
+          className={`${mono.className} flex flex-col gap-1 pb-2 text-[10px] uppercase tracking-[0.3em] text-[#ededed]/30`}
+        >
+          <span>points</span>
+          <span>per game</span>
+        </div>
+      </div>
+
+      <div className="relative mt-6 grid grid-cols-2 gap-3">
+        {(["FG%", "3PT%", "Attempts", "Games"] as const).map((label) => (
+          <div
+            key={label}
+            className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4"
+          >
+            <div
+              className={`${mono.className} text-[10px] uppercase tracking-[0.3em] text-[#ededed]/30`}
+            >
+              {label}
+            </div>
+            <Skel className="mt-2 h-[24px] w-[60px]" />
+          </div>
+        ))}
+      </div>
+
+      <div className="relative mt-8">
+        <div
+          className={`${mono.className} mb-3 text-[10px] uppercase tracking-[0.4em] text-[#ededed]/30`}
+        >
+          ⏤ signature shot
+        </div>
+        <div className="relative overflow-hidden rounded-xl border border-[#ff5e2b]/15 bg-[#ff5e2b]/[0.03] p-5">
+          <div className="absolute inset-y-0 left-0 w-[2px] bg-[#ff5e2b]/40" />
+          <Skel className="h-[22px] w-[200px]" />
+          <div className="mt-3 flex gap-2">
+            <Skel className="h-[10px] w-[90px]" />
+            <Skel className="h-[10px] w-[60px]" />
+            <Skel className="h-[10px] w-[80px]" />
+          </div>
+        </div>
+      </div>
+
+      <div className="relative mt-8">
+        <div
+          className={`${mono.className} mb-4 text-[10px] uppercase tracking-[0.4em] text-[#ededed]/30`}
+        >
+          ⏤ shot distribution
+        </div>
+        {["paint", "mid-range", "three-point"].map((label) => (
+          <div key={label} className="mb-4 last:mb-0">
+            <div className="mb-2 flex items-baseline justify-between">
+              <span
+                className={`${mono.className} text-[11px] uppercase tracking-[0.32em] text-[#ededed]/55`}
+              >
+                {label}
+              </span>
+              <Skel className="h-[14px] w-[40px]" />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/[0.06]" />
+              <Skel className="h-[10px] w-[55px]" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+export default function PlayerStatsSidebar({
   shots,
-  seasonStats 
+  seasonStats,
+  loading,
 }: PlayerStatsSidebarProps) {
-  
-  // Calculate shooting percentages
+  if (loading) return <SidebarSkeleton />;
   const totalShots = shots.length;
-  const madeShots = shots.filter(s => s.SHOT_MADE_FLAG === 1).length;
-  const fgPercentage = totalShots > 0 ? ((madeShots / totalShots) * 100).toFixed(1) : '0.0';
-  
-  // Three-point shooting (shots labeled as 3PT Field Goals)
-  const threePointShots = shots.filter(s => s.SHOT_TYPE == "3PT Field Goal");
-  const madeThrees = threePointShots.filter(s => s.SHOT_MADE_FLAG === 1).length;
-  const threePtPercentage = threePointShots.length > 0 
-    ? ((madeThrees / threePointShots.length) * 100).toFixed(1) 
-    : '0.0';
-  
-  // Calculate PPG from shot data if not provided
+  const madeShots = shots.filter((s) => s.SHOT_MADE_FLAG === 1).length;
+  const fgPercentage =
+    totalShots > 0 ? ((madeShots / totalShots) * 100).toFixed(1) : "0.0";
+
+  const threePointShots = shots.filter((s) => s.SHOT_TYPE == "3PT Field Goal");
+  const madeThrees = threePointShots.filter(
+    (s) => s.SHOT_MADE_FLAG === 1
+  ).length;
+  const threePtPercentage =
+    threePointShots.length > 0
+      ? ((madeThrees / threePointShots.length) * 100).toFixed(1)
+      : "0.0";
+
   const totalPoints = shots.reduce((sum, shot) => {
     if (shot.SHOT_MADE_FLAG === 1) {
       return sum + (shot.SHOT_TYPE == "3PT Field Goal" ? 3 : 2);
     }
     return sum;
   }, 0);
-  
-  const ppg = seasonStats?.PTS.toFixed(1) || 
-    (seasonStats?.GP ? (totalPoints / seasonStats.GP).toFixed(1) : 'N/A');
-  
-  // Find best shooting zone
-  const shotsByType: { [key: string]: { made: number; total: number, three: boolean } } = {};
-  
-  // Before your forEach loop, add:
-  console.log("Sample shots:", shots.slice(0, 5).map(s => ({
-    SHOT_TYPE: s.SHOT_TYPE,
-    SHOT_DISTANCE: s.SHOT_DISTANCE,
-    SHOT_ZONE_BASIC: s.SHOT_ZONE_BASIC,
-    SHOT_ZONE_AREA: s.SHOT_ZONE_AREA,
-    ACTION_TYPE: s.ACTION_TYPE
-  })));
 
-  shots.forEach(shot => {
+  const ppg =
+    seasonStats?.PTS.toFixed(1) ||
+    (seasonStats?.GP ? (totalPoints / seasonStats.GP).toFixed(1) : "—");
+
+  const shotsByType: {
+    [key: string]: { made: number; total: number; three: boolean };
+  } = {};
+
+  shots.forEach((shot) => {
     let shotType = "Unknown";
     let shotZone = "error";
     let shotArea = "Unknown";
@@ -74,11 +180,9 @@ export default function PlayerStatsSidebar({
       shot.ACTION_TYPE = shot.ACTION_TYPE?.replace(" Shot", "");
       shot.ACTION_TYPE = shot.ACTION_TYPE?.replace(" shot", "");
     }
-
     if (shot.ACTION_TYPE?.includes("Finger Roll")) {
       shot.ACTION_TYPE = shot.ACTION_TYPE?.replace(" Finger Roll", "");
     }
-
     if (shot.ACTION_TYPE?.includes("Running")) {
       shot.ACTION_TYPE = shot.ACTION_TYPE?.replace("Running", "Driving");
     }
@@ -101,7 +205,6 @@ export default function PlayerStatsSidebar({
       shotZone = "changedZone";
     }
 
-    
     if (shot.SHOT_ZONE_AREA == "Left Side(L)") {
       shotArea = "Left Side Baseline";
     } else if (shot.SHOT_ZONE_AREA == "Right Side(R)") {
@@ -116,19 +219,16 @@ export default function PlayerStatsSidebar({
       shotArea = "changedArea";
     }
 
-
     if (shot.SHOT_ZONE_BASIC == "Restricted Area") {
-      shotType = shot.ACTION_TYPE || "Unknown"; 
+      shotType = shot.ACTION_TYPE || "Unknown";
     } else if (shot.SHOT_TYPE == "3PT Field Goal") {
       shotType = shotZone + " Three-Point " + shot.ACTION_TYPE;
     } else {
-      shotType = shotArea + " " + shot.ACTION_TYPE + ", " + shot.SHOT_ZONE_BASIC;
+      shotType =
+        shotArea + " " + shot.ACTION_TYPE + ", " + shot.SHOT_ZONE_BASIC;
     }
-    
-    let isThree = false;
-    if (shot.SHOT_TYPE == "3PT Field Goal") {
-      isThree = true;
-    }
+
+    const isThree = shot.SHOT_TYPE == "3PT Field Goal";
 
     if (!shotsByType[shotType]) {
       shotsByType[shotType] = { made: 0, total: 0, three: isThree };
@@ -138,291 +238,257 @@ export default function PlayerStatsSidebar({
       shotsByType[shotType].made++;
     }
   });
-  
-  // Find shot type with best percentage (minimum 10 attempts)
-  let bestShotType = 'N/A';
-  let bestTrueShooting = 0;
+
+  // Signature shot = blend of efficiency, diet share, and shot difficulty.
+  // Dunks and putback layups are penalized so they only win when they
+  // genuinely dominate a player's offense (Duren, lob-era Wemby).
+  // Mid-range and pull-up jumpers get a small boost so a skill-shot like
+  // SGA's mid-range beats his higher-FG% but lower-volume rim finishes.
+  // Floor scales with diet size so low-volume players still qualify.
+  const minAttempts = Math.max(1, Math.ceil(Math.sqrt(totalShots) * 0.5));
+  let bestShotType = "—";
+  let bestScore = 0;
   let bestPercentage = 0;
-  let bestPPS = 0;
   let bestShotAttempts = 0;
+  let bestShare = 0;
 
   Object.entries(shotsByType).forEach(([type, stats]) => {
-    if (stats.total >= 10) {
-      let trueShooting = (stats.made / stats.total) * 100;
+    if (stats.total < minAttempts) return;
+
+    const fg = (stats.made / stats.total) * 100;
+    const share = totalShots > 0 ? stats.total / totalShots : 0;
+
+    const lower = type.toLowerCase();
+    const isDunk =
+      lower.includes("dunk") || lower.includes("alley oop");
+    const isLayup =
+      lower.includes("layup") ||
+      lower.includes("tip") ||
+      lower.includes("putback");
+    const isJumper =
+      lower.includes("jump shot") ||
+      lower.includes("hook") ||
+      lower.includes("floating") ||
+      lower.includes("fadeaway");
+
+    let difficulty = 1.0;
+    if (stats.three) difficulty *= 1.5;
+    if (isDunk) difficulty *= 0.55;
+    else if (isLayup) difficulty *= 0.8;
+    else if (isJumper && !stats.three) difficulty *= 1.5;
+
+    const volumeBoost = 1 + 1.5 * share;
+    const score = fg * difficulty * volumeBoost;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestShotType = type;
       bestShotAttempts = stats.total;
-
-      if (stats.three) {
-        trueShooting = trueShooting * 1.5;
-      }
-
-      if (trueShooting > bestTrueShooting) {
-        bestTrueShooting = trueShooting;
-        bestShotType = type;
-
-        if (stats.three) {
-          bestPercentage = bestTrueShooting / 1.5;
-        } else {
-          bestPercentage = bestTrueShooting;
-        }
-
-        bestPPS = 2 * bestTrueShooting;
-      }
+      bestPercentage = fg;
+      bestShare = share;
     }
   });
-  
-  // Shot zone breakdown
-  const paintShots = shots.filter(s => s.SHOT_DISTANCE < 8);
-  const midRangeShots = shots.filter(s => s.SHOT_DISTANCE >= 8 && s.SHOT_TYPE == "2PT Field Goal");
-  
-  const paintFG = paintShots.length > 0
-    ? ((paintShots.filter(s => s.SHOT_MADE_FLAG === 1).length / paintShots.length) * 100).toFixed(1)
-    : '0.0';
-  
-  const midRangeFG = midRangeShots.length > 0
-    ? ((midRangeShots.filter(s => s.SHOT_MADE_FLAG === 1).length / midRangeShots.length) * 100).toFixed(1)
-    : '0.0';
+
+  const paintShots = shots.filter((s) => s.SHOT_DISTANCE < 8);
+  const midRangeShots = shots.filter(
+    (s) => s.SHOT_DISTANCE >= 8 && s.SHOT_TYPE == "2PT Field Goal"
+  );
+
+  const paintFG =
+    paintShots.length > 0
+      ? (
+          (paintShots.filter((s) => s.SHOT_MADE_FLAG === 1).length /
+            paintShots.length) *
+          100
+        ).toFixed(1)
+      : "0.0";
+
+  const midRangeFG =
+    midRangeShots.length > 0
+      ? (
+          (midRangeShots.filter((s) => s.SHOT_MADE_FLAG === 1).length /
+            midRangeShots.length) *
+          100
+        ).toFixed(1)
+      : "0.0";
 
   return (
-    <div style={{
-      width: '320px',
-      background: 'linear-gradient(to bottom, #1e293b, #0f172a)',
-      borderRadius: '12px',
-      padding: '24px',
-      color: '#f1f5f9',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-      height: 'fit-content'
-    }}>
-      {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <h2 style={{ 
-          margin: 0,
-          fontSize: '20px',
-          fontWeight: 600,
-          color: '#ffffff',
-          marginBottom: '4px'
-        }}>
-          {playerName}
-        </h2>
-        <p style={{ 
-          margin: 0,
-          fontSize: '13px',
-          color: '#94a3b8'
-        }}>
-          Season Statistics
-        </p>
+    <aside className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02] p-7 backdrop-blur-md">
+      <div className="pointer-events-none absolute -right-24 -top-32 h-64 w-64 rounded-full bg-[#ff5e2b]/[0.08] blur-[80px]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ededed]/15 to-transparent" />
+
+      <header className="relative">
+        <div
+          className={`${mono.className} text-[10px] uppercase tracking-[0.42em] text-[#ff5e2b]`}
+        >
+          by the numbers
+        </div>
+        <div
+          className={`${mono.className} mt-2 text-[10px] uppercase tracking-[0.32em] text-[#ededed]/35`}
+        >
+          season report
+        </div>
+      </header>
+
+      {/* hero stat: PPG */}
+      <div className="relative mt-7 flex items-end gap-3 border-b border-white/[0.07] pb-7">
+        <span
+          className={`${display.className} text-[78px] leading-[0.85] tracking-[-0.045em] italic text-[#ededed]`}
+        >
+          {ppg}
+        </span>
+        <div
+          className={`${mono.className} flex flex-col gap-1 pb-2 text-[10px] uppercase tracking-[0.3em] text-[#ededed]/45`}
+        >
+          <span>points</span>
+          <span>per game</span>
+        </div>
       </div>
 
-      {/* Main Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '16px',
-        marginBottom: '24px'
-      }}>
-        <StatCard 
-          label="PPG"
-          value={ppg}
-          color="#60a5fa"
-        />
-        <StatCard 
-          label="FG%"
-          value={`${fgPercentage}%`}
-          color="#34d399"
-        />
-        <StatCard 
-          label="3PT%"
-          value={`${threePtPercentage}%`}
-          color="#f59e0b"
-        />
-        <StatCard 
-          label="Attempts"
-          value={totalShots}
-          color="#a78bfa"
+      {/* secondary stats grid */}
+      <div className="relative mt-6 grid grid-cols-2 gap-3">
+        <StatCard label="FG%" value={fgPercentage} suffix="%" />
+        <StatCard label="3PT%" value={threePtPercentage} suffix="%" />
+        <StatCard label="Attempts" value={totalShots.toString()} />
+        <StatCard
+          label="Games"
+          value={seasonStats?.GP?.toString() ?? "—"}
         />
       </div>
 
-      {/* Divider */}
-      <div style={{
-        height: '1px',
-        background: '#334155',
-        marginBottom: '24px'
-      }} />
-
-      {/* Best Shot Type */}
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{
-          margin: 0,
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#94a3b8',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          marginBottom: '12px'
-        }}>
-          Best Shot Type
-        </h3>
-        <div style={{
-          background: 'rgba(16, 185, 129, 0.1)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          borderRadius: '8px',
-          padding: '16px',
-        }}>
-          <div style={{
-            fontSize: '18px',
-            fontWeight: 600,
-            color: '#10b981',
-            marginBottom: '4px'
-          }}>
+      {/* signature shot */}
+      <div className="relative mt-8">
+        <div
+          className={`${mono.className} mb-3 text-[10px] uppercase tracking-[0.4em] text-[#ededed]/45`}
+        >
+          ⏤ signature shot
+        </div>
+        <div className="relative overflow-hidden rounded-xl border border-[#ff5e2b]/25 bg-[#ff5e2b]/[0.05] p-5">
+          <div className="absolute inset-y-0 left-0 w-[2px] bg-[#ff5e2b]" />
+          <div
+            className={`${display.className} text-[19px] leading-tight italic text-[#ededed]`}
+          >
             {bestShotType}
           </div>
-          <div style={{
-            fontSize: '13px',
-            color: '#94a3b8'
-          }}>
-            {bestPercentage.toFixed(1)}% accuracy, {bestShotAttempts} attempts.
+          <div
+            className={`${mono.className} mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] uppercase tracking-[0.3em] text-[#ededed]/45`}
+          >
+            <span className="text-[#ff5e2b]">
+              {bestPercentage.toFixed(1)}% accuracy
+            </span>
+            <span className="text-[#ededed]/25">·</span>
+            <span>{bestShotAttempts} att.</span>
+            <span className="text-[#ededed]/25">·</span>
+            <span>{(bestShare * 100).toFixed(0)}% of diet</span>
           </div>
         </div>
       </div>
 
-      {/* Shot Distribution */}
-      <div>
-        <h3 style={{
-          margin: 0,
-          fontSize: '14px',
-          fontWeight: 600,
-          color: '#94a3b8',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          marginBottom: '12px'
-        }}>
-          Shot Distribution
-        </h3>
-        
-        <ZoneBreakdown 
-          label="Paint"
+      {/* distribution */}
+      <div className="relative mt-8">
+        <div
+          className={`${mono.className} mb-4 text-[10px] uppercase tracking-[0.4em] text-[#ededed]/45`}
+        >
+          ⏤ shot distribution
+        </div>
+        <ZoneBreakdown
+          label="paint"
           attempts={paintShots.length}
           percentage={paintFG}
           total={totalShots}
-          color="#ef4444"
         />
-        <ZoneBreakdown 
-          label="Mid-Range"
+        <ZoneBreakdown
+          label="mid-range"
           attempts={midRangeShots.length}
           percentage={midRangeFG}
           total={totalShots}
-          color="#f59e0b"
         />
-        <ZoneBreakdown 
-          label="Three-Point"
+        <ZoneBreakdown
+          label="three-point"
           attempts={threePointShots.length}
           percentage={threePtPercentage}
           total={totalShots}
-          color="#3b82f6"
         />
       </div>
-    </div>
+    </aside>
   );
 }
 
-// Stat Card Component
-function StatCard({ label, value, color }: { label: string; value: string | number; color: string }) {
+function StatCard({
+  label,
+  value,
+  suffix,
+}: {
+  label: string;
+  value: string;
+  suffix?: string;
+}) {
   return (
-    <div style={{
-      background: 'rgba(30, 41, 59, 0.6)',
-      borderRadius: '8px',
-      padding: '16px',
-      border: '1px solid rgba(51, 65, 85, 0.5)'
-    }}>
-      <div style={{
-        fontSize: '12px',
-        color: '#94a3b8',
-        marginBottom: '4px',
-        fontWeight: 500
-      }}>
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 transition-colors duration-200 hover:border-white/15 hover:bg-white/[0.03]">
+      <div
+        className={`${mono.className} text-[10px] uppercase tracking-[0.3em] text-[#ededed]/40`}
+      >
         {label}
       </div>
-      <div style={{
-        fontSize: '28px',
-        fontWeight: 700,
-        color: color
-      }}>
-        {value}
+      <div className="mt-2 flex items-baseline gap-1">
+        <span
+          className={`${display.className} text-[26px] leading-none tracking-[-0.02em] italic text-[#ededed]`}
+        >
+          {value}
+        </span>
+        {suffix && (
+          <span
+            className={`${mono.className} text-[12px] text-[#ededed]/45`}
+          >
+            {suffix}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-// Zone Breakdown Component
-function ZoneBreakdown({ 
-  label, 
-  attempts, 
-  percentage, 
+function ZoneBreakdown({
+  label,
+  attempts,
+  percentage,
   total,
-  color 
-}: { 
-  label: string; 
-  attempts: number; 
+}: {
+  label: string;
+  attempts: number;
   percentage: string;
   total: number;
-  color: string;
 }) {
-  const distributionPercent = total > 0 ? ((attempts / total) * 100).toFixed(0) : '0';
-  
+  const distribution = total > 0 ? (attempts / total) * 100 : 0;
+
   return (
-    <div style={{
-      marginBottom: '12px',
-      background: 'rgba(30, 41, 59, 0.4)',
-      borderRadius: '6px',
-      padding: '12px',
-      border: '1px solid rgba(51, 65, 85, 0.3)'
-    }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '8px'
-      }}>
-        <span style={{
-          fontSize: '13px',
-          fontWeight: 500,
-          color: '#cbd5e1'
-        }}>
+    <div className="mb-4 last:mb-0">
+      <div className="mb-2 flex items-baseline justify-between">
+        <span
+          className={`${mono.className} text-[11px] uppercase tracking-[0.32em] text-[#ededed]/70`}
+        >
           {label}
         </span>
-        <span style={{
-          fontSize: '14px',
-          fontWeight: 600,
-          color: color
-        }}>
-          {percentage}%
+        <span
+          className={`${display.className} text-[15px] italic text-[#ededed]`}
+        >
+          {percentage}
+          <span className={`${mono.className} ml-0.5 text-[10px] text-[#ededed]/40`}>
+            %
+          </span>
         </span>
       </div>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        <div style={{
-          flex: 1,
-          height: '6px',
-          background: '#1e293b',
-          borderRadius: '3px',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            height: '100%',
-            width: `${distributionPercent}%`,
-            background: color,
-            transition: 'width 0.3s ease'
-          }} />
+      <div className="flex items-center gap-3">
+        <div className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-[#ff5e2b]/80 transition-all duration-700"
+            style={{ width: `${distribution}%` }}
+          />
         </div>
-        <span style={{
-          fontSize: '11px',
-          color: '#64748b',
-          minWidth: '60px',
-          textAlign: 'right'
-        }}>
-          {attempts} shots
+        <span
+          className={`${mono.className} min-w-[62px] text-right text-[10px] uppercase tracking-[0.28em] text-[#ededed]/35`}
+        >
+          {attempts} sh
         </span>
       </div>
     </div>
