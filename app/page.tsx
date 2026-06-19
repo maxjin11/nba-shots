@@ -61,7 +61,7 @@ export default function Home() {
       {/* atmosphere */}
       <div className="pointer-events-none absolute inset-0">
         <div
-          className="bloom absolute left-1/2 top-[38%] h-[760px] w-[760px] rounded-full bg-[#ff5e2b]/[0.08] blur-[140px]"
+          className="bloom absolute left-1/2 top-[34%] h-[680px] w-[680px] rounded-full bg-[#ff5e2b]/[0.13] blur-[130px]"
           style={{ transform: "translate(-50%, -50%)" }}
         />
         <svg

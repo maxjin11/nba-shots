@@ -251,9 +251,11 @@ export default function PlayerStatsSidebar({
   let bestPercentage = 0;
   let bestShotAttempts = 0;
   let bestShare = 0;
+  let hasEligible = false;
 
   Object.entries(shotsByType).forEach(([type, stats]) => {
     if (stats.total < minAttempts) return;
+    hasEligible = true;
 
     const fg = (stats.made / stats.total) * 100;
     const share = totalShots > 0 ? stats.total / totalShots : 0;
@@ -288,6 +290,19 @@ export default function PlayerStatsSidebar({
       bestShare = share;
     }
   });
+
+  // No shot type cleared the attempt floor — fall back to the most attempted
+  // shot so there's always a signature shot to show.
+  if (!hasEligible) {
+    Object.entries(shotsByType).forEach(([type, stats]) => {
+      if (stats.total > bestShotAttempts) {
+        bestShotType = type;
+        bestShotAttempts = stats.total;
+        bestPercentage = (stats.made / stats.total) * 100;
+        bestShare = totalShots > 0 ? stats.total / totalShots : 0;
+      }
+    });
+  }
 
   const paintShots = shots.filter((s) => s.SHOT_DISTANCE < 8);
   const midRangeShots = shots.filter(
