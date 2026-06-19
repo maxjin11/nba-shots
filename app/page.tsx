@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import SearchBar from "./components/SearchBar";
+import { API_BASE } from "./lib/api";
 import type { Player } from "./types/player";
 
 const display = DM_Serif_Display({
@@ -25,7 +26,7 @@ export default function Home() {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/players");
+        const res = await fetch(`${API_BASE}/players`);
         const data = await res.json();
         setPlayers(data);
       } catch (error) {

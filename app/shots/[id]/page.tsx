@@ -7,6 +7,7 @@ import { DM_Serif_Display, JetBrains_Mono } from "next/font/google";
 import ShotChart from "../../components/ShotChart";
 import SearchBar from "../../components/SearchBar";
 import PlayerStatsSidebar from "@/app/components/PlayerStatsSidebar";
+import { API_BASE } from "../../lib/api";
 import type { Player } from "../../types/player";
 
 const display = DM_Serif_Display({
@@ -63,7 +64,7 @@ export default function ShotsPage() {
         setShotsLoading(true);
         setError(null);
         setRateLimit(null);
-        const res = await fetch(`http://127.0.0.1:8000/shots/${playerId}`);
+        const res = await fetch(`${API_BASE}/shots/${playerId}`);
 
         if (res.status === 429) {
           const body = await res
@@ -85,7 +86,7 @@ export default function ShotsPage() {
         const data = await res.json();
         setShots(data);
 
-        const playersRes = await fetch("http://127.0.0.1:8000/players");
+        const playersRes = await fetch(`${API_BASE}/players`);
         const playersList: Player[] = await playersRes.json();
         const player = playersList.find(
           (p) => p.id === parseInt(playerId as string)
@@ -104,7 +105,7 @@ export default function ShotsPage() {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/players");
+        const res = await fetch(`${API_BASE}/players`);
         const data = await res.json();
         setPlayers(data);
       } catch (err) {
@@ -118,7 +119,7 @@ export default function ShotsPage() {
     const fetchStats = async () => {
       try {
         const res = await fetch(
-          `http://127.0.0.1:8000/players/${playerId}/current-season`
+          `${API_BASE}/players/${playerId}/current-season`
         );
 
         if (res.status === 429) {

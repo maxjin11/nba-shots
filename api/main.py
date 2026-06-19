@@ -18,9 +18,18 @@ all_players = players.get_active_players()
 
 app = FastAPI()
 
+# Comma-separated list of allowed frontend origins. Set FRONTEND_ORIGINS in
+# production (e.g. "https://your-app.vercel.app"); defaults to the local dev
+# server.
+allowed_origins = [
+    origin.strip()
+    for origin in os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or ["*"] for dev
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
