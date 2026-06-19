@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Fuse from "fuse.js";
 import { JetBrains_Mono } from "next/font/google";
 import type { Player } from "../types/player";
@@ -23,6 +24,7 @@ export default function SearchBar({ players, onSelect }: PlayerSearchProps) {
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+  const router = useRouter();
 
   const fuse = useMemo(
     () =>
@@ -82,6 +84,7 @@ export default function SearchBar({ players, onSelect }: PlayerSearchProps) {
     setQuery("");
     setIsOpen(false);
     setFocusedIndex(-1);
+    router.push(`/shots/${player.id}`);
   };
 
   return (

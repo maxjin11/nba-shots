@@ -97,24 +97,26 @@ export default function Home() {
       </header>
 
       {/* hero */}
-      <section className="relative z-10 flex min-h-[calc(100vh-180px)] flex-col items-center justify-start px-6 pt-[8vh]">
+      <section className="relative z-10 flex min-h-[calc(100vh-180px)] flex-col items-center justify-start px-6 pt-[16vh]">
         <div className="flex w-full max-w-[680px] flex-col items-center gap-7 text-center">
+          <h1
+            className={`${display.className} rise leading-[0.84] tracking-[-0.045em] text-[clamp(56px,10vw,128px)]`}
+            style={{ animationDelay: "0.25s" }}
+          >
+            <span className="mb-[0.35em] block text-[0.4em] leading-none tracking-[-0.01em] text-[#ededed]/70">
+              Who&rsquo;s got the
+            </span>
+            <span className="block italic text-[#ff5e2b]">
+              Hot Hand<span className="text-[#ff5e2b]/80">?</span>
+            </span>
+          </h1>
+
           <span
             className={`${mono.className} rise text-[11px] uppercase tracking-[0.42em] text-[#ff5e2b]`}
             style={{ animationDelay: "0.15s" }}
           >
             shot diet analytics
           </span>
-
-          <h1
-            className={`${display.className} rise leading-[0.84] tracking-[-0.045em] text-[clamp(56px,10vw,128px)]`}
-            style={{ animationDelay: "0.25s" }}
-          >
-            <span className="block">Shooters</span>
-            <span className="block italic text-[#ff5e2b]">
-              Shoot<span className="text-[#ff5e2b]/70">.</span>
-            </span>
-          </h1>
 
           <p
             className={`${mono.className} rise max-w-[460px] text-[13px] leading-[1.75] tracking-wide text-[#ededed]/55`}
@@ -139,7 +141,6 @@ export default function Home() {
         style={{ animationDelay: "0.7s" }}
       >
         <span>2025—26 season</span>
-        <span className="hidden sm:inline">made for hoopheads</span>
         <span>v 0.1</span>
       </footer>
     </main>

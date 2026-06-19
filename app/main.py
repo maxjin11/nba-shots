@@ -52,6 +52,10 @@ def consume_search_slot(request: Request):
     Each search is stored as a ZSET member with the request timestamp as its
     score. Before counting we drop members older than the window, so the
     "in-window count" is always exact regardless of when the window started.
+
+    Fails open: if Redis errors out, the request is allowed through. The
+    limiter is a safety net for the NBA API — it shouldn't be a single point
+    of failure for the whole site.
     """
     ip = get_client_ip(request)
     key = f"rate:search-miss:{ip}"
@@ -59,41 +63,35 @@ def consume_search_slot(request: Request):
     window_ms = SEARCH_RATE_WINDOW_S * 1000
     cutoff_ms = now_ms - window_ms
 
-    # Slide the window forward by evicting expired entries
-    redis.zremrangebyscore(key, 0, cutoff_ms)
-
-    in_window = redis.zcard(key)
+    try:
+        # Slide the window forward by evicting expired entries.
+        redis.zremrangebyscore(key, 0, cutoff_ms)
+        in_window = redis.zcard(key) or 0
+    except Exception as exc:
+        print(f"[rate-limit] redis read failed, allowing request: {exc}")
+        return
 
     if in_window >= SEARCH_RATE_LIMIT:
-        # The oldest in-window entry falls out first; that's when the user
-        # regains a slot. Use it for an accurate Retry-After.
-        retry_after_s = SEARCH_RATE_WINDOW_S
-        try:
-            oldest = redis.zrange(key, 0, 0, withscores=True)
-            if oldest:
-                # upstash_redis returns [[member, score], ...] for withscores
-                oldest_score = float(oldest[0][1])
-                retry_after_s = max(
-                    1, int((oldest_score + window_ms - now_ms) / 1000) + 1
-                )
-        except (IndexError, TypeError, ValueError):
-            pass
         raise HTTPException(
             status_code=429,
             detail=(
                 f"Rate limit exceeded: {SEARCH_RATE_LIMIT} fresh data calls per minute. "
                 "Cached players remain unlimited — try again in a moment."
             ),
-            headers={"Retry-After": str(retry_after_s)},
+            headers={"Retry-After": str(SEARCH_RATE_WINDOW_S)},
         )
 
-    # Record this search. The random suffix guarantees uniqueness even when
-    # multiple requests land in the same millisecond (ZSET members are keys).
-    member = f"{now_ms}:{secrets.token_hex(4)}"
-    redis.zadd(key, {member: now_ms})
-    # Auto-clean the key if the IP goes quiet — TTL slightly outlives the
-    # window so the last entry can fully age out.
-    redis.expire(key, SEARCH_RATE_WINDOW_S + 5)
+    try:
+        # Record this search. The random suffix guarantees uniqueness even
+        # when multiple requests land in the same millisecond (ZSET members
+        # are keys).
+        member = f"{now_ms}:{secrets.token_hex(4)}"
+        redis.zadd(key, {member: now_ms})
+        # Auto-clean the key if the IP goes quiet — TTL slightly outlives the
+        # window so the last entry can fully age out.
+        redis.expire(key, SEARCH_RATE_WINDOW_S + 5)
+    except Exception as exc:
+        print(f"[rate-limit] redis write failed, request already allowed: {exc}")
 
 
 @app.get("/")

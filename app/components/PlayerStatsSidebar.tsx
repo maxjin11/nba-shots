@@ -245,7 +245,7 @@ export default function PlayerStatsSidebar({
   // Mid-range and pull-up jumpers get a small boost so a skill-shot like
   // SGA's mid-range beats his higher-FG% but lower-volume rim finishes.
   // Floor scales with diet size so low-volume players still qualify.
-  const minAttempts = Math.max(1, Math.ceil(Math.sqrt(totalShots) * 0.5));
+  const minAttempts = Math.max(1, Math.ceil(Math.sqrt(totalShots)));
   let bestShotType = "—";
   let bestScore = 0;
   let bestPercentage = 0;
