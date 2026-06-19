@@ -1,5 +1,13 @@
 {
-    "rewrites": [
-        { "source": "/api/(.*)", "destination": "/api/main" }
-    ]
+  "experimentalServices": {
+    "web": {
+      "entrypoint": ".",
+      "routePrefix": "/"
+    },
+    "api": {
+      "entrypoint": "api/main.py",
+      "routePrefix": "/api",
+      "framework": "fastapi"
+    }
+  }
 }

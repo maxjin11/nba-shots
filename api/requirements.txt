@@ -1,0 +1,6 @@
+fastapi==0.137.2
+nba_api==1.11.4
+pandas==3.0.3
+upstash-redis==1.7.0
+python-dotenv==1.2.2
+requests==2.34.2
