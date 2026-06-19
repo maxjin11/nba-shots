@@ -112,6 +112,10 @@ async def get_players():
     print("Retrieving all players.")
     return all_players
 
+@app.get("/debug-path/{full_path:path}")
+async def debug_path(full_path: str):
+    return {"received_path": full_path}
+
 # Add this to see the actual response from NBA API
 @app.get("/debug-nba/{player_id}")
 async def debug_nba(player_id: int):
